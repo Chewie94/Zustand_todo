@@ -1,5 +1,6 @@
 import React, {useRef, useEffect} from 'react';
 
+import shallow from 'zustand/shallow'
 import { useToDoStore } from '../../data/stores/useToDoStore';
 import { InputPlus } from '../components/InputPlus';
 import { InputTask } from '../components/InputTask';
@@ -23,9 +24,10 @@ export const ToDoList: React.FC<ToDoListProps> = ({
         state.createTask,
         state.updateTask,
         state.removeTask,
-    ]);
+    ], shallow);
 
-    // console.log(1, `${mainTitle} component render`)
+    console.log(1, `${mainTitle} component render`)
+
     return (
         <article className={styles.article}>
             <h1 className={styles.articleTitle}>{mainTitle}</h1>
@@ -57,8 +59,3 @@ export const ToDoList: React.FC<ToDoListProps> = ({
     );
 }
 
-
-// const equalityFn = (a: any, b: any) => {
-//     console.log(a, b)
-//     return JSON.stringify(a) === JSON.stringify(b)
-// };

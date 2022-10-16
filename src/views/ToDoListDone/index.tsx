@@ -13,7 +13,9 @@ export const ToDoListDone: React.FC = () => {
         state.tasksDone,
         state.createTaskDone,
         state.deleteEverything,
-    ]);
+    ], shallow);
+
+    console.log(2, ' ToDoListDone component render')
 
     return (
         <article className={styles.article}>

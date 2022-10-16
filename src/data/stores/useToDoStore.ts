@@ -1,4 +1,4 @@
-import create from 'zustand';
+import create, { State, StateCreator} from 'zustand';
 
 import { generateId } from '../helpers';
 
@@ -17,8 +17,32 @@ interface ToDoStore {
     deleteEverything: () => void;
 }
 
-export const useToDoStore = create<ToDoStore>((set, get) => ({
-    tasks: [],
+function isToDoStore(object: any): object is ToDoStore {
+    return 'tasks' in object;
+}
+
+const localStorageUpdate = <T extends State>(config: StateCreator<T>): StateCreator<T> => (set, get, api) => config((nextState, ...args) => {
+    if (isToDoStore(nextState)) {
+        window.localStorage.setItem('tasks', JSON.stringify(
+            nextState.tasks
+        ));
+    }
+    set(nextState, ...args);
+}, get, api);
+
+const getCurrentState = () => {
+    try {
+        const currentState = (JSON.parse(window.localStorage.getItem('tasks') || '[]')) as Task[];
+        return currentState;
+    } catch(err) {
+        window.localStorage.setItem('tasks', '[]');
+    }
+
+    return [];
+}
+
+export const useToDoStore = create<ToDoStore>(localStorageUpdate((set, get) => ({
+    tasks: getCurrentState(),
     tasksDone: [],
     createTask: (title) => {
         const { tasks } = get();
@@ -29,7 +53,7 @@ export const useToDoStore = create<ToDoStore>((set, get) => ({
         }
 
         set({
-            tasks: [newTask].concat(tasks),
+            tasks: [newTask, ...tasks],
         })
     },
     updateTask: (id: string, title: string) => {
@@ -55,7 +79,6 @@ export const useToDoStore = create<ToDoStore>((set, get) => ({
             title: 'Fake repeated title',
             createdAt: Date.now(),
         }
-
         set({
             tasksDone: [newTask].concat(tasksDone),
         })
@@ -63,30 +86,4 @@ export const useToDoStore = create<ToDoStore>((set, get) => ({
     deleteEverything: () => {
         set({}, true)
     },
-}));
-
-// const unsub2 = useToDoStore.subscribe(state => state.tasks, console.log)
-
-// function isToDoStore(object: any): object is ToDoStore {
-//     return 'tasks' in object;
-// }
-
-// const localStorageUpdate = <T extends State>(config: StateCreator<T>): StateCreator<T> => (set, get, api) => config((nextState, ...args) => {
-//     if (isToDoStore(nextState)) {
-//         window.localStorage.setItem('tasks', JSON.stringify(
-//             nextState.tasks
-//         ));
-//     }
-//     set(nextState, ...args);
-// }, get, api);
-
-// const getCurrentState = () => {
-//     try {
-//         const currentState = (JSON.parse(window.localStorage.getItem('tasks') || '[]')) as Task[];
-//         return currentState;
-//     } catch(err) {
-//         window.localStorage.setItem('tasks', '[]');
-//     }
-
-//     return [];
-// }
+})));
